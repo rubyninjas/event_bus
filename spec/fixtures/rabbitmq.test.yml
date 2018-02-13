@@ -1,0 +1,13 @@
+test:
+  connection:
+    host: 127.0.0.130
+    port: 9876
+    user: user
+    pass: password
+  exchanges:
+    visits:
+      name: mst.visits.test
+      delay: 5_000
+    address_program:
+      name: mst.address_program.test
+      delay: 5_000
