@@ -11,7 +11,6 @@ module EventBus
       @config.deep_merge!(file_cfg) if file_cfg
       @config.deep_merge!(cfg)
       @config = EventBus::ConfigHandler.new @config
-      @config
     end
 
     def default_config
@@ -30,6 +29,20 @@ module EventBus
     def config
       return @config unless @config.nil?
       instance
+    end
+
+    def logger
+      return @logger if defined?(@logger)
+      file = begin
+        File.open("#{File.expand_path(Dir.pwd)}/log/#{Configurator.environment}-bunny.log",
+                  File::WRONLY | File::APPEND | File::CREAT)
+      rescue Errno::ENOENT
+        STDOUT
+      end
+
+      @logger       = Logger.new(file)
+      @logger.level = Rails.logger.level if Configurator.environment != 'test'
+      @logger
     end
 
     def connection_settings

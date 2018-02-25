@@ -1,13 +1,15 @@
 require 'spec_helper'
 
-RSpec.describe EventBus::Connector, :rabbit do
+RSpec.describe EventBus::Connector do
   before do
     @config = EventBus::Configurator.config
   end
+
   after do
     EventBus::Configurator.instance_variable_set(:@config, nil)
     EventBus::Configurator.instance
   end
+
   let!(:connector) { EventBus::Connector.new(@config) }
 
   before :each do
@@ -36,7 +38,7 @@ RSpec.describe EventBus::Connector, :rabbit do
       it 'is declared' do
         ch = connector.channel
         xx = ch.exchanges
-        expect(xx.keys).to match_array %w(mst.visits.test mst.address_program.test)
+        expect(xx.keys).to match_array %w(mst.some.test mst.some.other.test)
       end
     end
 

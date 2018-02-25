@@ -1,15 +1,15 @@
 test:
   connection:
-    host: 127.0.0.130
-    port: 9876
-    user: user
-    pass: password
+    host: 127.0.0.1
+    port: 5672
+    user: guest
+    pass: guest
   exchanges:
-    visits:
-      name: mst.visits.test
-      routing_key: mst.queue
+    some:
+      name: mst.some.test
+      routing_key: mst.some
       delay: 5_000
-    address_program:
-      name: mst.address_program.test
-      routing_key: mst.queue
+    some_other:
+      name: mst.some.other.test
+      routing_key: mst.some.other
       delay: 5_000

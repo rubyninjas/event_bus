@@ -1,7 +1,7 @@
 require 'spec_helper'
 require 'event_bus/connector'
 
-RSpec.describe EventBus::Configurator, :rabbit do
+RSpec.describe EventBus::Configurator do
 
   before do
     described_class.instance_variable_set(:@config, nil)

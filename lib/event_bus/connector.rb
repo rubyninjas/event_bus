@@ -74,15 +74,29 @@ module EventBus
       Time.now
     end
 
+    def check_connection!
+      raise ConnectionError, 'connection not exists' if connection.nil?
+      raise ConnectionClosedError, 'connection is closed' unless connection.open?
+      raise ChannelError, 'channel not exists' if channel.nil?
+      raise ChannelClosedError, 'channel is closed' unless channel.open?
+      raise ExchangeError if exchanges.empty?
+      raise QueueError if exchanges.empty?
+      exchanges.each_pair { |name, e| raise ExchangeStateError, "exchange[#{name}]: channel is closed" unless e.channel&.open? }
+    end
+
     private
 
+    def logger
+      Configurator.logger
+    end
+
     def create_exchange(exchange_name)
-      logger.info "exchange_name=#{exchange_name}, type: #{exchange_opts.type}, durable: true, arguments: #{exchange_opts.arguments.h}" rescue nil
-      channel.exchange(exchange_name, { type: exchange_opts.type, durable: true, arguments: exchange_opts.arguments.h })
+      logger.info "exchange_name=#{exchange_name}, type: #{exchange_opts.type}, durable: #{exchange_opts.durable}, arguments: #{exchange_opts.arguments.h}" rescue nil
+      channel.exchange(exchange_name, exchange_opts.h.slice(:type, :direct, :durable, :auto_delete, :arguments))
     end
 
     def create_queue
-      @channel.queue('mst.queue', durable: true)
+      @channel.queue('mst.queue', exchange_opts.h.slice(:durable))
     end
 
     def create_connection
@@ -94,25 +108,6 @@ module EventBus
       exchanges.each_pair do |_, ex|
         raise QueueError if ex.find_queue(ex.routing_key).nil?
       end
-    end
-
-    public
-
-    def logger
-      return @logger if defined?(@logger)
-      @logger       = Logger.new("#{File.expand_path(Dir.pwd)}/log/#{Configurator.environment}-bunny.log")
-      @logger.level = Rails.logger.level if Configurator.environment != 'test'
-      @logger
-    end
-
-    def check_connection!
-      raise ConnectionError, 'connection not exists' if connection.nil?
-      raise ConnectionClosedError, 'connection is closed' unless connection.open?
-      raise ChannelError, 'channel not exists' if channel.nil?
-      raise ChannelClosedError, 'channel is closed' unless channel.open?
-      raise ExchangeError if exchanges.empty?
-      raise QueueError if exchanges.empty?
-      exchanges.each_pair { |name, e| raise ExchangeStateError, "exchange[#{name}]: channel is closed" unless e.channel&.open? }
     end
 
   end

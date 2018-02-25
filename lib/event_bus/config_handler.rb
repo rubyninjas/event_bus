@@ -5,9 +5,9 @@ require 'hashie'
 module EventBus
   class ConfigHandler < OpenStruct
 
-  def initialize(hash = nil)
-    @table = {}.with_indifferent_access
-    @hash_table = {}.with_indifferent_access
+    def initialize(hash = nil)
+      @table = {}.with_indifferent_access
+      @hash_table = {}.with_indifferent_access
 
       if hash
         _merge(hash)
@@ -26,7 +26,7 @@ module EventBus
     protected :_merge
 
     def to_h
-      @hash_table
+      @hash_table.deep_symbolize_keys
     end
 
     alias :h :to_h

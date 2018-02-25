@@ -3,7 +3,7 @@ require 'event_bus/connector'
 require 'event_bus/configurator'
 require 'active_support/core_ext/hash/deep_merge'
 
-RSpec.describe EventBus::Connector, :rabbit do
+RSpec.describe EventBus::Connector do
   let!(:connector) { described_class.new }
 
   describe '#connect' do
@@ -42,7 +42,7 @@ RSpec.describe EventBus::Connector, :rabbit do
 
   context 'raise errors' do
 
-    it 'in cases', :aggregate_failures do
+    it 'in cases' do
       connector.disconnect
       expect { connector.check_connection! }.to raise_exception(described_class::ConnectionError)
 
