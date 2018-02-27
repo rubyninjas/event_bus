@@ -1,11 +1,26 @@
 require 'event_bus/publisher'
 module EventBus
   module TestMethods
-    def publish(payload:, exchange:)
-      @exchanges ||= {}
-      @exchanges[exchange] ||= []
-      @exchanges[exchange].push validate_payload(payload)
+
+    def self.included(base)
+      base.class_eval do
+        alias_method :old_publish, :publish
+        undef_method :publish
+
+        def publish(payload:, exchange:)
+          puts 'EventBus::Publisher.publish is mocked'
+          @exchanges ||= {}
+          @exchanges[exchange] ||= []
+          @exchanges[exchange].push validate_payload(payload)
+        end
+
+        def exchanges
+          @exchanges
+        end
+
+      end
     end
+
   end
 
   class Testing
@@ -15,14 +30,18 @@ module EventBus
       def set_test_mode!(mode = :on)
         if mode == :on
           EventBus::Publisher.singleton_class.class_eval do
-            alias_method :old_publish, :publish
-            prepend EventBus::TestMethods
+            unless instance_methods.include?(:old_publish)
+              include EventBus::TestMethods
+            end
           end
         else
           EventBus::Publisher.singleton_class.class_eval do
-            if defined?(:old_publish)
+            if instance_methods.include?(:old_publish)
               alias_method :publish, :old_publish
-              remove_method :old_publish
+              undef_method :old_publish
+            end
+            if instance_methods.include?(:exchanges)
+              undef_method :exchanges
             end
           end
         end

@@ -3,24 +3,23 @@ require 'event_bus/connector'
 require 'event_bus/configurator'
 require 'event_bus/publisher'
 
-def expect_publish_event(expected_event_msg, called = :once)
-  expect_any_instance_of(Bunny::Exchange).to receive(:publish).with(expected_event_msg, any_args).exactly(called).times
-end
-
-def expect_not_publish_event(declined_event_msg)
-  expect_any_instance_of(Bunny::Exchange).not_to receive(:publish).with(declined_event_msg, any_args)
-end
-
-def expect_not_publish_event_any
-  expect_any_instance_of(Bunny::Exchange).not_to receive(:publish).with(any_args)
-end
-
 RSpec.describe EventBus::Publisher do
+  let!(:bunny_exchange_class){ class_double(Bunny::Exchange).as_stubbed_const }
+  let!(:bunny_exchange_instance){ instance_double(Bunny::Exchange) }
+
+  before do
+    allow(bunny_exchange_instance).to receive(:publish)
+    allow(Bunny::Exchange).to receive(:new).and_return(bunny_exchange_instance)
+
+    allow_any_instance_of(EventBus::Connector).to receive(:connect)
+    allow_any_instance_of(EventBus::Connector).to receive(:check_connection!)
+    allow_any_instance_of(EventBus::Connector).to receive(:exchanges).and_return({'some' => bunny_exchange_instance})
+  end
 
   describe '#publish' do
 
     it 'publishes given payload to given exchange' do
-      expect_publish_event 'some message'
+      expect(bunny_exchange_instance).to receive(:publish).with('some message', any_args).exactly(:once).times
       described_class.publish payload: 'some message', exchange: 'some'
     end
 
@@ -41,12 +40,14 @@ RSpec.describe EventBus::Publisher do
     end
 
     context 'when payload is not of allowed types' do
+
       it 'raises UnsupportedMessageType exception' do
         expect { described_class.publish payload: 1, exchange: 'some' }.to raise_error EventBus::Publisher::UnsupportedMessageType
       end
     end
 
-    context 'when payload is oneof allowed types' do
+    context 'when payload is one of allowed types' do
+
       it 'doesnt raise exception ' do
         [{some: :message}, ['some', 'message'], 'some message'].each do |msg|
           expect { described_class.publish payload: msg, exchange: 'some' }.not_to raise_error
