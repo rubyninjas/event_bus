@@ -3,8 +3,6 @@ require 'database_cleaner'
 require 'event_bus'
 require 'active_record'
 require 'active_model'
-require 'event_bus/model'
-require 'event_bus/publisher'
 
 ENV['RACK_ENV'] = 'test'
 RSpec.configure do |config|

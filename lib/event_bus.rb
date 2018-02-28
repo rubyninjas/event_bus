@@ -7,3 +7,5 @@ end
 require 'event_bus/configurator'
 require 'event_bus/connector'
 require 'event_bus/config_handler'
+require 'event_bus/model'
+require 'event_bus/publisher'
