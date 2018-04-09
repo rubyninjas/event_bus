@@ -22,29 +22,31 @@ RSpec.describe EventBus::Model, :db do
 
   describe 'firing callbacks' do
 
-    context 'when class_name given' do
+    context 'when message given' do
       before do
         model.class_eval do
-          event_bus_callback(event: :updated, fire_on: :create, condition: nil, exchange_hub: :some_hub, class_name: :visit)
+          event_bus_callback(fire_on: :create, condition: nil, exchange_hub: :some_hub, message: 'some string')
         end
       end
 
-      it 'sets correct class name in payload' do
-        expect(EventBus::Publisher).to receive(:publish).with(payload: ({ 'visit' => 1, event: :updated}), exchange: :some_hub)
+      it 'sets pushes correct message to publisher' do
+        expect(EventBus::Publisher).to receive(:publish).with(payload: 'some string', exchange: :some_hub)
         model.create!(id: 1)
       end
 
     end
 
-    context 'when class_name is not given' do
+    context 'when block given' do
       before do
         model.class_eval do
-          event_bus_callback(event: :updated, fire_on: :create, condition: nil, exchange_hub: :some_hub)
+          event_bus_callback(fire_on: :create, condition: nil, exchange_hub: :some_hub) do |record|
+            { "#{record.model_name}_id" => record.id, some_text: :other_text }
+          end
         end
       end
 
-      it 'sets correct class name in payload' do
-        expect(EventBus::Publisher).to receive(:publish).with(payload: ({ 'test' => 2, event: :updated}), exchange: :some_hub)
+      it 'sets pushes correct message to publisher' do
+        expect(EventBus::Publisher).to receive(:publish).with(payload: { 'test_id' => 2, some_text: :other_text }, exchange: :some_hub)
         model.create! id: 2
       end
     end
@@ -53,12 +55,12 @@ RSpec.describe EventBus::Model, :db do
       let!(:inst){ model.create! }
       before do
         model.class_eval do
-          event_bus_callback(event: :other_event, fire_on: :create, condition: nil, exchange_hub: :some_hub)
+          event_bus_callback(fire_on: :create, condition: nil, exchange_hub: :some_hub, message: { event: :other_event })
         end
       end
 
       it 'fires on create with correct payload' do
-        expect(EventBus::Publisher).to receive(:publish).with(payload: ({ 'test' => 2, event: :other_event}), exchange: :some_hub)
+        expect(EventBus::Publisher).to receive(:publish).with(payload: ({ event: :other_event }), exchange: :some_hub)
         model.create! id: 2
       end
 
@@ -79,7 +81,7 @@ RSpec.describe EventBus::Model, :db do
       let(:inst){ model.create! }
       before do
         model.class_eval do
-          event_bus_callback(event: :updated, fire_on: :update, condition: nil, exchange_hub: :some_hub)
+          event_bus_callback(fire_on: :update, condition: nil, exchange_hub: :some_hub, message: { event: :updated })
         end
       end
 
@@ -95,7 +97,7 @@ RSpec.describe EventBus::Model, :db do
 
 
       it 'fires on update with correct pyload' do
-        expect(EventBus::Publisher).to receive(:publish).with(payload: ({ 'test' => 1, event: :updated}), exchange: :some_hub)
+        expect(EventBus::Publisher).to receive(:publish).with(payload: ({ event: :updated }), exchange: :some_hub)
         inst.update! id: 1
       end
 
@@ -105,12 +107,12 @@ RSpec.describe EventBus::Model, :db do
       let(:inst){ model.create! }
       before do
         model.class_eval do
-          event_bus_callback(event: :destroyed, fire_on: :destroy, condition: nil, exchange_hub: :some_hub)
+          event_bus_callback(fire_on: :destroy, condition: nil, exchange_hub: :some_hub, message: { event: :destroyed })
         end
       end
 
       it 'fires on destroy with correct payload' do
-        expect(EventBus::Publisher).to receive(:publish).with(payload: ({ 'test' => 1, event: :destroyed}), exchange: :some_hub)
+        expect(EventBus::Publisher).to receive(:publish).with(payload: ({ event: :destroyed }), exchange: :some_hub)
         inst.destroy
       end
 
