@@ -6,11 +6,12 @@ module EventBus
 
     class_methods do
 
-      def event_bus_callback(event:, fire_on:, condition:, exchange_hub:, class_name: nil)
+      def event_bus_callback(fire_on:, condition:, exchange_hub:, message: nil)
+
 
         callback = ->(record) do
-          EventBus::Publisher.publish payload: ({ (class_name || record.model_name).to_s => record.id,
-                                                  :event => event }),
+          payload = message || (yield(record) if block_given?)
+          EventBus::Publisher.publish payload: payload,
                                       exchange: exchange_hub
         end
 
