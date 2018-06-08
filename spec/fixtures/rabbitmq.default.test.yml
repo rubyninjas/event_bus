@@ -8,8 +8,10 @@ test:
     some:
       name: mst.some.test
       routing_key: mst.some
+      bind_queue: 'mst.scorecard_live.test'
       delay: 5_000
     some_other:
       name: mst.some.other.test
       routing_key: mst.some.other
+      bind_queue: 'mst.scorecard_live.test'
       delay: 5_000

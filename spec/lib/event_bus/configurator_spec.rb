@@ -18,7 +18,7 @@ RSpec.describe EventBus::Configurator do
       %i[connection exchanges exchange_opts].each do |arg|
         expect(config.respond_to? arg).to be_truthy
       end
-      %i[routing_key delay].each do |arg|
+      %i[routing_key delay bind_queue].each do |arg|
         config.exchanges.each_pair { |_, publisher| expect(publisher.respond_to? arg).to be_truthy }
       end
       %i[type durable auto_delete mandatory arguments content_type].each do |arg|

@@ -8,6 +8,7 @@ test:
     visits:
       name: mst.visits.test
       delay: 5_000
+      bind_queue: 'mst.scorecard_live.test'
     address_program:
       name: mst.address_program.test
       delay: 5_000

@@ -61,8 +61,9 @@ module EventBus
 
     def create_exchanges!
       config.exchanges.each_pair do |exchange_key, exchange_opts|
-        @exchanges[exchange_key] = create_exchange(exchange_opts.name)
-        create_queue
+        exchange = create_exchange(exchange_opts.name)
+        @exchanges[exchange_key] = exchange
+        create_queue(exchange, exchange_opts.bind_queue) if exchange_opts.bind_queue.present?
       end
     end
 
@@ -95,8 +96,10 @@ module EventBus
       channel.exchange(exchange_name, exchange_opts.h.slice(:type, :direct, :durable, :auto_delete, :arguments))
     end
 
-    def create_queue
-      @channel.queue('mst.queue', exchange_opts.h.slice(:durable))
+    def create_queue(exchange, queue_name = 'mst_queue')
+      queue = @channel.queue(queue_name, exchange_opts.h.slice(:durable))
+      queue.bind(exchange)
+      queue
     end
 
     def create_connection
